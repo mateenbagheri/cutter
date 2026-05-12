@@ -1,8 +1,10 @@
 package internal
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/mateenbagheri/cutter/cmd"
 )
@@ -30,5 +32,37 @@ func ProcessFile(fileAddr, delimiter, fields string) error {
 	}
 	defer file.Close()
 
+	scanner := bufio.NewScanner(file)
+
+	// Note: setting buffer size in case there are larger
+	// and longer lines in the file
+	scanner.Buffer(make([]byte, 64*1024), 1024*1024)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		err = ProcessLine(line, delimiter, fields)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func ProcessLine(line, delimiter, fields string) error {
+	if line == "" {
+		fmt.Println()
+		return nil
+	}
+
+	if delimiter == "" {
+		delimiter = " "
+	}
+	words := strings.Split(line, delimiter)
+
+	for _, word := range words {
+		fmt.Printf("%s ", word)
+	}
+	fmt.Printf("\n")
 	return nil
 }
