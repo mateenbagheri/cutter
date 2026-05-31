@@ -55,8 +55,8 @@ func TestCommandParseFlags(t *testing.T) {
 			if tt.wantErr {
 				return
 			}
-			if cmd.Fields != tt.wantFields {
-				t.Errorf("Fields = %q, want %q", cmd.Fields, tt.wantFields)
+			if cmd.Field != tt.wantFields {
+				t.Errorf("Fields = %q, want %q", cmd.Field, tt.wantFields)
 			}
 			if cmd.Delimiter != tt.wantDelim {
 				t.Errorf("Delimiter = %q, want %q", cmd.Delimiter, tt.wantDelim)

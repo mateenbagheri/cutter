@@ -11,14 +11,14 @@ var (
 )
 
 type Command struct {
-	Fields    string
+	Field     string
 	Delimiter string
 	Files     []string
 }
 
 func (c *Command) ParseFlags(args []string) error {
 	fs := flag.NewFlagSet("cutter", flag.ContinueOnError)
-	fs.StringVar(&c.Fields, "f", "", "fields to return")
+	fs.StringVar(&c.Field, "f", "", "fields to return")
 	fs.StringVar(&c.Delimiter, "d", " ", "delimiter")
 	err := fs.Parse(args)
 	if err != nil {
@@ -33,7 +33,7 @@ func (c *Command) Validate() error {
 		return ErrFileRequired
 	}
 
-	if c.Fields == "" {
+	if c.Field == "" {
 		return ErrFieldsFlagRequired
 	}
 

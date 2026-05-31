@@ -2,35 +2,39 @@ package internal
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/mateenbagheri/cutter/cmd"
 )
 
-const (
-	errOpenFileFailure = "failed to open file with file address %s"
+var (
+	ErrOpenFileFailure = errors.New("failed to open file with file address")
+	ErrFieldStrEmpty   = errors.New("field flag cannot be empty")
 )
 
 func ProcessCommand(cmd cmd.Command) error {
 	// open file
 	for _, file := range cmd.Files {
-		if err := ProcessFile(file, cmd.Delimiter, cmd.Fields); err != nil {
+		if err := ProcessFile(file, cmd.Delimiter, cmd.Field); err != nil {
 			return err
 		}
 	}
-	// effect delimiter first
-	// effect fields last
 	return nil
 }
 
-func ProcessFile(fileAddr, delimiter, fields string) error {
+func ProcessFile(fileAddr, delimiter, fieldStr string) error {
 	file, err := os.Open(fileAddr)
 	if err != nil {
-		return fmt.Errorf(errOpenFileFailure, fileAddr)
+		return fmt.Errorf("failed to open address %s, %w", fileAddr, ErrOpenFileFailure)
 	}
 	defer file.Close()
+
+	fs, err := NewFieldSelector(fieldStr)
+	if err != nil {
+		return err
+	}
 
 	scanner := bufio.NewScanner(file)
 
@@ -40,29 +44,27 @@ func ProcessFile(fileAddr, delimiter, fields string) error {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		err = ProcessLine(line, delimiter, fields)
-		if err != nil {
-			return err
-		}
+		ProcessLine(line, delimiter, fs)
 	}
 
 	return nil
 }
 
-func ProcessLine(line, delimiter, fields string) error {
+func ProcessLine(line, delimiter string, fs *FieldSelector) {
+	const separator = " "
 	if line == "" {
 		fmt.Println()
-		return nil
+		return
 	}
 
 	if delimiter == "" {
 		delimiter = " "
 	}
-	words := strings.Split(line, delimiter)
 
-	for _, word := range words {
-		fmt.Printf("%s ", word)
+	result, err := fs.Extract(line, delimiter)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
-	fmt.Printf("\n")
-	return nil
+
+	fmt.Println(result)
 }
